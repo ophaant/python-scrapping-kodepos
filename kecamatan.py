@@ -39,8 +39,8 @@ with open('kecamatan.csv', 'w', newline='') as csvfile:
             no = cols[1].text.strip()
             kode = cols[4].text.strip()
             nama = cols[5].text.strip()
-            provinsi = cols[2].text.strip()
-            kabupaten = cols[3].text.strip()
+            provinsi = cols[4].text.strip()[:2]
+            kabupaten = cols[4].text.strip()[:5]
 
             # Write the data to the CSV file
             writer.writerow([no, kode, nama,provinsi,kabupaten])

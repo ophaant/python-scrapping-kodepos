@@ -39,7 +39,7 @@ with open('kabupaten_kota.csv', 'w', newline='') as csvfile:
             no = cols[1].text.strip()
             kode = cols[4].text.strip()
             nama = cols[5].text.strip()
-            provinsi = cols[2].text.strip()
+            provinsi = cols[4].text.strip()[:2]
             jenis = cols[3].text.strip()
             ibukota = cols[6].text.strip()
 

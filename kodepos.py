@@ -78,17 +78,17 @@ def get_data_from_page(url, params,prov,kab,kec):
 # set the list to hold all data
 all_data = []
 
-propinsi = []
-with open('propinsi.csv', 'r') as fileProv:
-    readerProv = csv.DictReader(fileProv)
-    for rowProv in readerProv:
-        propinsi.append(rowProv)
-
-kabupaten = []
-with open('kabupaten_kota.csv', 'r') as fileKab:
-    readerKab = csv.DictReader(fileKab)
-    for rowKab in readerKab:
-        kabupaten.append(rowKab)
+# propinsi = []
+# with open('propinsi.csv', 'r') as fileProv:
+#     readerProv = csv.DictReader(fileProv)
+#     for rowProv in readerProv:
+#         propinsi.append(rowProv)
+#
+# kabupaten = []
+# with open('kabupaten_kota.csv', 'r') as fileKab:
+#     readerKab = csv.DictReader(fileKab)
+#     for rowKab in readerKab:
+#         kabupaten.append(rowKab)
 
 kecamatan = []
 with open('kecamatan.csv', 'r') as fileKec:
@@ -96,32 +96,36 @@ with open('kecamatan.csv', 'r') as fileKec:
     for rowKec in readerKec:
         kecamatan.append(rowKec)
 
-for rowProv in propinsi:
-    for rowKab in kabupaten:
-        if rowKab['propinsi'] == rowProv['nama']:
-            for rowKec in kecamatan:
-                if rowKec['kabupaten'][5:] == rowKab['nama']:
-                    params["x_Propinsi"] = str(rowProv['kode'])
-                    params["x_Kabupaten"] = str(rowKab['kode'])
-                    params["x_Kecamatan"] = str(rowKec['kode'])
-                    data=get_data_from_page(url, params, rowProv['kode'], rowKab['kode'], rowKec['kode'])
-                    all_data.extend(data)
-                    # time.sleep(10)
-
-
+# for rowProv in propinsi:
+#     for rowKab in kabupaten:
+#         if rowKab['propinsi'] == rowProv['nama']:
 with open('kodepos.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-
     # Write the header row
-    writer.writerow(['kodepos','propinsi','kabupaten','kecamatan','kelurahan','alamat'])
+    writer.writerow(['kodepos', 'propinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat'])
 
-    for i in range(len(all_data)):
-        kodepos = all_data[i]['kodepos']
-        propinsiData = all_data[i]['propinsi']
-        kabupatenData = all_data[i]['kabupaten']
-        kecamatanData = all_data[i]['kecamatan']
-        kelurahanData = all_data[i]['kelurahan']
-        alamat = all_data[i]['alamat']
-        writer.writerow([kodepos,propinsiData,kabupatenData,kecamatanData,kelurahanData,alamat])
+    for rowKec in kecamatan:
+        # if rowKec['kabupaten'][5:] == rowKab['nama']:
+        params["x_Propinsi"] = str(rowKec['propinsi'])
+        params["x_Kabupaten"] = str(rowKec['kabupaten'])
+        params["x_Kecamatan"] = str(rowKec['kode'])
+        data=get_data_from_page(url, params, rowKec['propinsi'], rowKec['kabupaten'], rowKec['kode'])
+        # all_data.extend(data)
+            # time.sleep(10)
+        for i in range(len(data)):
+            kodepos = data[i]['kodepos']
+            propinsiData = data[i]['propinsi']
+            kabupatenData = data[i]['kabupaten']
+            kecamatanData = data[i]['kecamatan']
+            kelurahanData = data[i]['kelurahan']
+            alamat = data[i]['alamat']
+            writer.writerow([kodepos, propinsiData, kabupatenData, kecamatanData, kelurahanData, alamat])
+
+
+
+
+
+
+
 
 print("Finished scraping {} pages".format(len(all_data)))

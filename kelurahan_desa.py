@@ -39,9 +39,9 @@ with open('kelurahan_desa.csv', 'w', newline='') as csvfile:
             no = cols[1].text.strip()
             kode = cols[6].text.strip()
             nama = cols[7].text.strip()
-            provinsi = cols[2].text.strip()
-            kabupaten = cols[3].text.strip()
-            kecamatan = cols[4].text.strip()
+            provinsi = cols[6].text.strip()[:2]
+            kabupaten = cols[6].text.strip()[:5]
+            kecamatan = cols[6].text.strip()[:8]
             jenis = cols[5].text.strip()
 
             # Write the data to the CSV file
