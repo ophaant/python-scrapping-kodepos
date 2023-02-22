@@ -14,7 +14,7 @@ with open('kabupaten_kota.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
 
     # Write the header row
-    writer.writerow(['No.', 'Kode', 'Nama', 'Propinsi', 'Jenis','Ibu Kota'])
+    writer.writerow(['no', 'kode', 'nama', 'propinsi', 'jenis','ibukota'])
 
     # Keep looping until there are no more pages
     while True:

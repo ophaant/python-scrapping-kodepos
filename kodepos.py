@@ -1,3 +1,5 @@
+import time
+
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -18,12 +20,12 @@ params = {
     "searchtype": "",
     "recperpage": "100",
 }
-params["x_Propinsi"] = str('31')
-params["x_Kabupaten"] = str('31.71')
-params["x_Kecamatan"] = str('31.71.01')
+# params["x_Propinsi"] = str('31')
+# params["x_Kabupaten"] = str('31.71')
+# params["x_Kecamatan"] = str('31.71.01')
 
 # function to retrieve data from a single page
-def get_data_from_page(url, params):
+def get_data_from_page(url, params,prov,kab,kec):
     data = []
     while True:
         # Send a GET request to the URL with the current query parameters
@@ -43,7 +45,14 @@ def get_data_from_page(url, params):
         for idx, row in enumerate(rows):
             cols = row.select('td')
             # Extract the data from each column
-            data.append({'kode' : cols[9].text.strip()})
+            data.append({
+                'kodepos' : cols[9].text.strip(),
+                'propinsi' : cols[1].text.strip(),
+                'kabupaten' : cols[2].text.strip(),
+                'kecamatan' : cols[3].text.strip(),
+                'kelurahan' : cols[4].text.strip(),
+                'alamat' : cols[7].text.strip(),
+            })
 
         # Find the next button and update the query parameters to go to the next page
         next_button = soup.select_one('button.btn-default[data-value="next"][data-ew-action="redirect"]')
@@ -54,9 +63,10 @@ def get_data_from_page(url, params):
                 'recperpage': 100,
                 **dict(q.split('=') for q in next_url.split('?')[-1].split('&'))
             }
-            params["x_Propinsi"] = str('31')
-            params["x_Kabupaten"] = str('31.71')
-            params["x_Kecamatan"] = str('31.71.01')
+            params["x_Propinsi"] = str(prov)
+            params["x_Kabupaten"] = str(kab)
+            params["x_Kecamatan"] = str(kec)
+            # time.sleep(5)
         else:
             break
 
@@ -67,41 +77,51 @@ def get_data_from_page(url, params):
 
 # set the list to hold all data
 all_data = []
-data=get_data_from_page(url, params)
-all_data.extend(data)
-# loop over all possible combinations of search parameters
-# for propinsi in range(1, 35):
-#     for kabupaten in range(1, 500):
-#         for kecamatan in range(1, 500):
-#             search_params["x_Propinsi"] = str(propinsi)
-#             search_params["x_Kabupaten"] = "{:02d}".format(kabupaten)
-#             search_params["x_Kecamatan"] = "{:02d}.{:02d}".format(kabupaten, kecamatan)
-#             response = requests.get(url, params=search_params)
-#             soup = BeautifulSoup(response.content, "html.parser")
-#             pager = soup.find("div", {"class": "paging"})
-#             if pager is not None:
-#                 num_pages = len(pager.findAll("a")) - 2
-#             else:
-#                 num_pages = 1
-#             for page in range(1, num_pages + 1):
-#                 search_params["page"] = str(page)
-#                 data = get_data_from_page(url, search_params)
-#                 all_data.extend(data)
-#                 print("Scraped page {} of {} for propinsi {}, kabupaten {:02d}, kecamatan {:02d}".format(
-#                     page, num_pages, propinsi, kabupaten, kecamatan))
 
-# save the data to a JSON file
-# with open("kode_pos.json", "w") as outfile:
-#     json.dump(all_data, outfile)
+propinsi = []
+with open('propinsi.csv', 'r') as fileProv:
+    readerProv = csv.DictReader(fileProv)
+    for rowProv in readerProv:
+        propinsi.append(rowProv)
+
+kabupaten = []
+with open('kabupaten_kota.csv', 'r') as fileKab:
+    readerKab = csv.DictReader(fileKab)
+    for rowKab in readerKab:
+        kabupaten.append(rowKab)
+
+kecamatan = []
+with open('kecamatan.csv', 'r') as fileKec:
+    readerKec = csv.DictReader(fileKec)
+    for rowKec in readerKec:
+        kecamatan.append(rowKec)
+
+for rowProv in propinsi:
+    for rowKab in kabupaten:
+        if rowKab['propinsi'] == rowProv['nama']:
+            for rowKec in kecamatan:
+                if rowKec['kabupaten'][5:] == rowKab['nama']:
+                    params["x_Propinsi"] = str(rowProv['kode'])
+                    params["x_Kabupaten"] = str(rowKab['kode'])
+                    params["x_Kecamatan"] = str(rowKec['kode'])
+                    data=get_data_from_page(url, params, rowProv['kode'], rowKab['kode'], rowKec['kode'])
+                    all_data.extend(data)
+                    # time.sleep(10)
+
 
 with open('kodepos.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
 
     # Write the header row
-    writer.writerow(['Kode'])
+    writer.writerow(['kodepos','propinsi','kabupaten','kecamatan','kelurahan','alamat'])
 
     for i in range(len(all_data)):
-        kode = all_data[i]['kode']
-        writer.writerow([kode])
+        kodepos = all_data[i]['kodepos']
+        propinsiData = all_data[i]['propinsi']
+        kabupatenData = all_data[i]['kabupaten']
+        kecamatanData = all_data[i]['kecamatan']
+        kelurahanData = all_data[i]['kelurahan']
+        alamat = all_data[i]['alamat']
+        writer.writerow([kodepos,propinsiData,kabupatenData,kecamatanData,kelurahanData,alamat])
 
 print("Finished scraping {} pages".format(len(all_data)))
